@@ -1,29 +1,29 @@
-const fs = require('fs');
-const fsPromises = fs.promises;
-const { exec, execSync } = require('child_process');
+const { Builder, By, Key, until, Capabilities } = require('selenium-webdriver');
+const { Options, ServiceBuilder, setDefaultService } = require('selenium-webdriver/chrome');
+const chromedriver = require('chromedriver');
 const path = require('path');
+const fs = require('fs');
 
-console.time('timer');
-console.log('Time start: ' + new Date());
+const service = new ServiceBuilder(chromedriver.path).build();
+setDefaultService(service);
 const tiktokLinks = fs.readFileSync('links.txt', 'utf-8');
-const handleDownload = async () => tiktokLinks.split(/\r?\n/).forEach(async (line) => {
-     await execSync(`node downloader.js ${JSON.stringify(line)}`, (error, stdout, stderr) => { console.log(error) })
-});
-handleDownload()
-// .then(() => {
-//      const getVideosFromDirectory = async () => {
-//           try {
-//                let fileNames = await fs.promises.readdir(path.resolve('/Users/autonome/Downloads'));
-//                let files = fileNames.filter(video => video && video.includes('mp4'));
-//                return files;
-//           }
-//           catch (err) {
-//                throw err;
-//           }
-//      }
-//      let vids = getVideosFromDirectory().then(data =>
-//           data.forEach(video => exec(`handbrakecli -i ` + JSON.stringify(`/Users/autonome/Downloads/${video}`) + ` --output "/Users/autonome/Movies/Today/${video}" --cfr --rate 30`, (err, stdout, stderr) => {
-//           }))
-//      )
-// });
-console.timeEnd('timer', 'Time end: ' + new Date());
+const arryLinks = tiktokLinks.split(/\r?\n/);
+(async function example() {
+        let driver = await new Builder().withCapabilities( Capabilities.chrome()).setChromeOptions(new Options().addExtensions('./adblock.crx')).build();
+        try {
+        for(let i = 0; i < arryLinks.length; i++){
+            await driver.sleep(1000);
+            await driver.get('https://snaptik.app/en');
+            await driver.wait(until.elementLocated(By.id('url')), 2000)
+            await driver.findElement(By.id('url')).click();
+            await driver.findElement(By.id('url')).sendKeys(arryLinks[i]);
+            await driver.sleep(1000);
+            await driver.findElement(By.id('submiturl')).click();
+            await driver.wait(until.elementLocated(By.xpath('//*[@id="download-block"]/div/a[2]')), 3000);
+            await driver.findElement(By.css('div.abuttons > a:nth-child(2)')).click();
+            await driver.sleep(1000);
+        }
+        } finally {
+            await driver.quit();
+        }
+})();
