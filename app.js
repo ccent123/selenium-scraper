@@ -24,6 +24,7 @@ const arryLinks = tiktokLinks.split(/\r?\n/);
             await driver.sleep(1000);
         }
         } finally {
+            await driver.sleep(3000);
             await driver.quit();
         }
 })();
